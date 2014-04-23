@@ -84,8 +84,8 @@ void Motor::backward() {
 void Motor::left() {
     if (move == LEFT) return;
     _stop();
-    _leftForward();
-    _rightBackward();
+    _leftBackward();
+    _rightForward();
     _go();
     move = LEFT;
 }
@@ -93,8 +93,8 @@ void Motor::left() {
 void Motor::right() {
     if (move == RIGHT) return;
     _stop();
-    _leftBackward();
-    _rightForward();
+    _leftForward();
+    _rightBackward();
     _go();
     move = RIGHT;
 }
@@ -103,6 +103,7 @@ void Motor::stop() {
     _stop();
     _leftStop();
     _rightStop();
+    _go();
     move = STOP;
 }
 
