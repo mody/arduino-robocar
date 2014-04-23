@@ -7,7 +7,7 @@
 // /usr/share/arduino/hardware/arduino/variants/standard/pins_arduino.h
 
 // limit 30cm
-enum { RANGE_LIMIT = 30 };
+enum { RANGE_STOP_LIMIT = 20, RANGE_GO_LIMIT = 35 };
 
 Mody::Motor motor;
 Mody::Sonic sonic;
@@ -19,12 +19,33 @@ void setup() {
     sonic.setup();
 }
 
+static bool stop_range(const long range) {
+    return range && range <= RANGE_STOP_LIMIT;
+}
 
-void loop() {
+static bool go_range(const long range) {
+    return range && range >= RANGE_GO_LIMIT;
+}
+
+static bool is_path_clear() {
     static long range = 0;
+    static bool clear = true;
+
     if (sonic.range(&range)) {
         range /= 58; // convert to cm
     }
+
+    if (stop_range(range)) {
+        clear = false;
+    } else if (!clear && go_range(range)) {
+        clear = true;
+    }
+
+    return clear;
+}
+
+void loop() {
+    const bool clear_path = is_path_clear();
 
     if (!Serial.available()) {
         return;
@@ -37,7 +58,7 @@ void loop() {
     case 'F': // forward
     case 'f': // forward
     case '1': // forward
-        if (!range || range >= RANGE_LIMIT) {
+        if (clear_path) {
             motor.forward();
         } else {
             motor.stop();
