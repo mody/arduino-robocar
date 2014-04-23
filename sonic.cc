@@ -17,6 +17,13 @@ struct State {
     State() : start(0L), diff(0L), status(IDLE)
     { }
 
+    volatile State& operator= (const State& o) volatile {
+        start = o.start;
+        diff = o.diff;
+        status = o.status;
+        return *this;
+    }
+
     long start;
     long diff;
     Status status;
@@ -24,11 +31,10 @@ struct State {
 
 
 volatile static State state;
-static long range = 0;
 
 ISR (PCINT0_vect) {
-    int level = PIND & _BV(ECHO_PIN);
-    long us = micros();
+    const int level = PIND & _BV(ECHO_PIN);
+    const long us = micros();
 
     if (level && state.status == STARTED) {
         state.start = us;
@@ -37,7 +43,8 @@ ISR (PCINT0_vect) {
         state.diff = us - state.start;
         state.status = IDLE;
     } else {
-        // noop
+        // reset
+        state = State();
     }
 }
 
